@@ -4,7 +4,7 @@
 
 First, download the repository from github:
 ```
-$ git clone 
+$ git clone https://github.com/AllenWLynch/lariat.git
 $ cd lariat
 ```
 

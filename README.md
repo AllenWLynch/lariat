@@ -12,7 +12,7 @@ Next, start a new conda environment, and install the package in "pipeline" mode:
 ```
 $ conda create --name lariat -c conda-forge -y python=3.12
 $ conda activate lariat
-$ pip install ".[train]"
+$ pip install ".[pipeline]"
 ```
 
 ## For reference

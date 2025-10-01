@@ -1,0 +1,100 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                        count
+-----------------------  -------
+download_annotation            1
+download_quantitation          1
+download_ref_annotation        1
+extract_isoforms               1
+make_intervals                 1
+write_gene_records             1
+total                          6
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 20 17:52:27 2025]
+localrule download_ref_annotation:
+    output: isoformDB/references/grch38.gencode.v29/gene_annotation.gtf.gz
+    jobid: 4
+    reason: Missing output files: isoformDB/references/grch38.gencode.v29/gene_annotation.gtf.gz
+    wildcards: reference_id=grch38.gencode.v29
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Select jobs to execute...
+[Wed Aug 20 17:52:28 2025]
+Finished jobid: 4 (Rule: download_ref_annotation)
+1 of 6 steps (17%) done
+Execute 1 jobs...
+[Wed Aug 20 17:52:28 2025]
+localrule make_intervals:
+    input: isoformDB/references/grch38.gencode.v29/gene_annotation.gtf.gz
+    output: isoformDB/references/grch38.gencode.v29/gene_intervals.bed
+    log: isoformDB/logs/grch38.gencode.v29/make_intervals.log
+    jobid: 3
+    benchmark: isoformDB/benchmarks/grch38.gencode.v29/make_intervals.tsv
+    reason: Missing output files: isoformDB/references/grch38.gencode.v29/gene_intervals.bed; Input files updated by another job: isoformDB/references/grch38.gencode.v29/gene_annotation.gtf.gz
+    wildcards: reference_id=grch38.gencode.v29
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T, mem_mb=2000, mem_mib=1908, time=00:30:00, cpus_per_task=2
+Select jobs to execute...
+[Wed Aug 20 17:52:39 2025]
+Finished jobid: 3 (Rule: make_intervals)
+2 of 6 steps (33%) done
+Execute 1 jobs...
+[Wed Aug 20 17:52:39 2025]
+localrule download_quantitation:
+    output: isoformDB/datasets/K562/isoform_quantitation.tsv
+    jobid: 5
+    reason: Missing output files: isoformDB/datasets/K562/isoform_quantitation.tsv
+    wildcards: dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Select jobs to execute...
+[Wed Aug 20 17:52:42 2025]
+Finished jobid: 5 (Rule: download_quantitation)
+3 of 6 steps (50%) done
+Execute 1 jobs...
+[Wed Aug 20 17:52:42 2025]
+localrule download_annotation:
+    output: isoformDB/datasets/K562/transcript_annotation.gtf.gz
+    jobid: 2
+    reason: Missing output files: isoformDB/datasets/K562/transcript_annotation.gtf.gz
+    wildcards: dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+[Wed Aug 20 17:52:47 2025]
+Finished jobid: 2 (Rule: download_annotation)
+4 of 6 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 20 17:52:47 2025]
+localrule extract_isoforms:
+    input: isoformDB/datasets/K562/transcript_annotation.gtf.gz
+    output: isoformDB/datasets/K562/isoforms.tsv
+    log: isoformDB/logs/extract_isoforms.K562.log
+    jobid: 1
+    benchmark: isoformDB/benchmarks/extract_isoforms.K562.tsv
+    reason: Missing output files: isoformDB/datasets/K562/isoforms.tsv; Input files updated by another job: isoformDB/datasets/K562/transcript_annotation.gtf.gz
+    wildcards: dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T, mem_mb=4000, mem_mib=3815, time=01:00:00, cpus_per_task=2
+[Wed Aug 20 17:53:18 2025]
+Finished jobid: 1 (Rule: extract_isoforms)
+5 of 6 steps (83%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 20 17:53:18 2025]
+localrule write_gene_records:
+    input: isoformDB/datasets/K562/isoforms.tsv, isoformDB/references/grch38.gencode.v29/gene_intervals.bed, isoformDB/datasets/K562/isoform_quantitation.tsv
+    output: isoformDB/database/partition=train/dataset_id=K562/data.parquet
+    jobid: 0
+    reason: Missing output files: isoformDB/database/partition=train/dataset_id=K562/data.parquet; Input files updated by another job: isoformDB/references/grch38.gencode.v29/gene_intervals.bed, isoformDB/datasets/K562/isoforms.tsv, isoformDB/datasets/K562/isoform_quantitation.tsv
+    wildcards: partition=train, dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+[Wed Aug 20 17:53:18 2025]
+Finished jobid: 0 (Rule: write_gene_records)
+6 of 6 steps (100%) done
+Removing temporary output isoformDB/datasets/K562/isoforms.tsv.
+Removing temporary output isoformDB/references/grch38.gencode.v29/gene_intervals.bed.
+Complete log(s): /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/.snakemake/log/2025-08-20T175226.917643.snakemake.log

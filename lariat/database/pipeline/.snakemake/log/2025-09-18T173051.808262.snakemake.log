@@ -1,0 +1,11 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+InputFunctionException in rule make_intervals in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/database/pipeline/main.smk", line 183:
+Error:
+  AttributeError: 'Namedlist' object has no attribute 'format'
+Wildcards:
+  reference_id=grch38.gencode.v29
+Traceback:
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/database/pipeline/main.smk", line 97, in reference_annotation (rule make_intervals, line 210, /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/database/pipeline/main.smk)

@@ -1,0 +1,22 @@
+
+datasets:
+  K562:
+    is_long_read: true
+    is_single_cell: false
+    celltypes:
+      K562: 1.0
+    source_data:
+      annotation:
+        file: https://www.encodeproject.org/files/ENCFF588BMG/@@download/ENCFF588BMG.gtf.gz
+      quantitation:
+        file: https://www.encodeproject.org/files/ENCFF448BDX/@@download/ENCFF448BDX.tsv
+        transcript_id_key: annot_transcript_id
+        weight_key: rep2ENCSR983KDL
+    reference: grch38.gencode.v29
+    technology_name: Sequel
+
+references:
+  grch38.gencode.v29:
+    gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.basic.annotation.gtf.gz
+    fasta_file: /Users/allen/genomes/hg38/hg38.fa
+    species: Homo sapiens

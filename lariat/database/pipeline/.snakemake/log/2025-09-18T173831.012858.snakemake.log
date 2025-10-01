@@ -1,0 +1,8 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+MissingInputException in rule all in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/database/pipeline/main.smk", line 46:
+Missing input files for rule all:
+    affected files:
+        isoformDB/database/dataset_id=K562

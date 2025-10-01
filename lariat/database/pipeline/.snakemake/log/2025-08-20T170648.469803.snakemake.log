@@ -1,0 +1,11 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+InputFunctionException in rule make_intervals in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 94:
+Error:
+  NameError: name 'w' is not defined
+Wildcards:
+  dataset_id=K562
+Traceback:
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 90, in _make_intervals_input (rule make_intervals, line 120, /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk)

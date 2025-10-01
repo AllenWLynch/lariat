@@ -1,0 +1,42 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                      count
+---------------------  -------
+download_quantitation        1
+write_gene_records           1
+total                        2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 20 17:39:22 2025]
+localrule download_quantitation:
+    output: isoformDB/K562/isoform_quantitation.tsv
+    jobid: 5
+    reason: Missing output files: isoformDB/K562/isoform_quantitation.tsv
+    wildcards: dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+[Wed Aug 20 17:39:26 2025]
+Finished jobid: 5 (Rule: download_quantitation)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 20 17:39:26 2025]
+localrule write_gene_records:
+    input: isoformDB/K562/isoforms.tsv, isoformDB/K562/gene_intervals.bed, isoformDB/K562/isoform_quantitation.tsv
+    output: isoformDB/database/dataset_id=K562/data.parquet
+    jobid: 0
+    reason: Missing output files: isoformDB/database/dataset_id=K562/data.parquet; Input files updated by another job: isoformDB/K562/isoform_quantitation.tsv
+    wildcards: dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+[Wed Aug 20 17:39:26 2025]
+Finished jobid: 0 (Rule: write_gene_records)
+2 of 2 steps (100%) done
+Removing temporary output isoformDB/K562/isoforms.tsv.
+Removing temporary output isoformDB/K562/gene_intervals.bed.
+Complete log(s): /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/.snakemake/log/2025-08-20T173922.670505.snakemake.log

@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lariat"
+version = "0.1.0"
+readme = "README.md"
+license = {text = "MIT"}
+
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "torch",
+    "tqdm",
+    "pyfaidx",
+    "requests",
+    "scipy",
+    "matplotlib",
+    "pydantic",
+    "pyarrow",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+]
+pipeline = [
+    "snakemake",
+]
+train = ["mamba-ssm","tensorboard"]
+
+all = [
+    "lariat[dev,pipeline,train]",
+]
+
+[project.scripts]
+lariat-compose = "lariat.database.pipeline.run_pipeline:main"
+lariat-select-transcripts = "lariat.database.pipeline.scripts.select_canonical_gene:main"
+lariat-lr-commit = "lariat.database.pipeline.scripts.write_records:main"
+
+[tool.setuptools.packages.find]
+include = ["lariat*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.yaml", "*.yml", "*.smk"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''

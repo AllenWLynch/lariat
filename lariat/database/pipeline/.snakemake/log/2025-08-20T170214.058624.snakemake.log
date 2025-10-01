@@ -1,0 +1,10 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+MissingInputException in rule make_intervals in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 86:
+Missing input files for rule make_intervals:
+    output: isoformDB/K562/gene_intervals.bed
+    wildcards: dataset_id=K562
+    affected files:
+        https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.basic.annotation.gtf.gz

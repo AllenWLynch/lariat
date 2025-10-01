@@ -1,0 +1,12 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+InputFunctionException in rule download_file in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 70:
+Error:
+  AttributeError: 'Wildcards' object has no attribute 'dataset_id'
+Wildcards:
+
+Traceback:
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 73, in <lambda>
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 40, in sample_config (rule download_file, line 70, /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk)

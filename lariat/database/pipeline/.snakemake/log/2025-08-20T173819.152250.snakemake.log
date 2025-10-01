@@ -1,0 +1,6 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+IOFileException in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 202:
+bad character in group name 'wildcards.dataset_id' at position 34 in wildcard statement

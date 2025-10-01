@@ -1,0 +1,54 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                 count
+----------------  -------
+all                     1
+write_lr_records        1
+total                   2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Sun Sep 28 16:04:23 2025]
+localrule write_lr_records:
+    input: isoformDB/downloads/K562/transcript_annotation.gtf.gz, isoformDB/downloads/K562/quantitation.tsv, isoformDB/references/grch38.gencode.v29/cannonical_genes.gff
+    output: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562
+    jobid: 1
+    reason: Missing output files: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562; Params have changed since last execution: Union of exclusive params before and now across all output: before: '--reference-id grch38.gencode.v29 \\\n            --dataset-id K562 \\\n            --weight-key rep2ENCSR983KDL \\\n            --transcript-id-key annot_transcript_id \\\n            --celltypes K562 \\\n' now: '--reference-id grch38.gencode.v29 \\\n            --dataset-id K562 \\\n            --weight-key rep2ENCSR983KDL \\\n            --transcript-id-key annot_transcript_id \\\n            --celltypes K562:1.0 \\\n' 
+    wildcards: is_long_read=true, reference_id=grch38.gencode.v29, dataset_id=K562
+    priority: 1000
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Shell command: 
+        python /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/scripts/write_records.py \
+            --gene-annotation isoformDB/references/grch38.gencode.v29/cannonical_genes.gff \
+            --quantitation isoformDB/downloads/K562/quantitation.tsv \
+            --transcript-annotation isoformDB/downloads/K562/transcript_annotation.gtf.gz \
+            --output-path isoformDB/database/ \
+            --reference-id grch38.gencode.v29 \
+            --dataset-id K562 \
+            --weight-key rep2ENCSR983KDL \
+            --transcript-id-key annot_transcript_id \
+            --celltypes K562:1.0 \
+
+        
+[Sun Sep 28 16:05:00 2025]
+Finished jobid: 1 (Rule: write_lr_records)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Sun Sep 28 16:05:00 2025]
+localrule all:
+    input: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562, isoformDB/references/grch38.gencode.v29/species.txt
+    jobid: 0
+    reason: Input files updated by another job: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Shell command: None
+[Sun Sep 28 16:05:00 2025]
+Finished jobid: 0 (Rule: all)
+2 of 2 steps (100%) done
+Complete log(s): /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/.snakemake/log/2025-09-28T160422.822250.snakemake.log

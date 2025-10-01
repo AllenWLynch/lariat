@@ -1,0 +1,98 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                 count
+----------------  -------
+all                     1
+write_lr_records        1
+total                   2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Sun Sep 28 16:03:43 2025]
+localrule write_lr_records:
+    input: isoformDB/downloads/K562/transcript_annotation.gtf.gz, isoformDB/downloads/K562/quantitation.tsv, isoformDB/references/grch38.gencode.v29/cannonical_genes.gff
+    output: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562
+    jobid: 1
+    reason: Missing output files: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562; Params have changed since last execution: Union of exclusive params before and now across all output: before: '--reference-id grch38.gencode.v29 \\\n        --dataset-id K562 \\\n        --weight-key rep2ENCSR983KDL \\\n        --transcript-id-key annot_transcript_id \\\n        --celltypes K562 \\\n' now: '--reference-id grch38.gencode.v29 \\\n            --dataset-id K562 \\\n            --weight-key rep2ENCSR983KDL \\\n            --transcript-id-key annot_transcript_id \\\n            --celltypes K562 \\\n' 
+    wildcards: is_long_read=true, reference_id=grch38.gencode.v29, dataset_id=K562
+    priority: 1000
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Shell command: 
+        python /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/scripts/write_records.py \
+            --gene-annotation isoformDB/references/grch38.gencode.v29/cannonical_genes.gff \
+            --quantitation isoformDB/downloads/K562/quantitation.tsv \
+            --transcript-annotation isoformDB/downloads/K562/transcript_annotation.gtf.gz \
+            --output-path isoformDB/database/ \
+            --reference-id grch38.gencode.v29 \
+            --dataset-id K562 \
+            --weight-key rep2ENCSR983KDL \
+            --transcript-id-key annot_transcript_id \
+            --celltypes K562 \
+
+        
+RuleException:
+CalledProcessError in file "/Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/main.smk", line 285:
+Command 'set -euo pipefail;  
+        python /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/scripts/write_records.py \
+            --gene-annotation isoformDB/references/grch38.gencode.v29/cannonical_genes.gff \
+            --quantitation isoformDB/downloads/K562/quantitation.tsv \
+            --transcript-annotation isoformDB/downloads/K562/transcript_annotation.gtf.gz \
+            --output-path isoformDB/database/ \
+            --reference-id grch38.gencode.v29 \
+            --dataset-id K562 \
+            --weight-key rep2ENCSR983KDL \
+            --transcript-id-key annot_transcript_id \
+            --celltypes K562 \' returned non-zero exit status 2.
+[Sun Sep 28 16:03:43 2025]
+Error in rule write_lr_records:
+    message: None
+    jobid: 1
+    input: isoformDB/downloads/K562/transcript_annotation.gtf.gz, isoformDB/downloads/K562/quantitation.tsv, isoformDB/references/grch38.gencode.v29/cannonical_genes.gff
+    output: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562
+    shell:
+        
+        python /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/scripts/write_records.py \
+            --gene-annotation isoformDB/references/grch38.gencode.v29/cannonical_genes.gff \
+            --quantitation isoformDB/downloads/K562/quantitation.tsv \
+            --transcript-annotation isoformDB/downloads/K562/transcript_annotation.gtf.gz \
+            --output-path isoformDB/database/ \
+            --reference-id grch38.gencode.v29 \
+            --dataset-id K562 \
+            --weight-key rep2ENCSR983KDL \
+            --transcript-id-key annot_transcript_id \
+            --celltypes K562 \
+
+        
+        (command exited with non-zero exit code)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Sun Sep 28 16:03:43 2025]
+Error in rule write_lr_records:
+    message: None
+    jobid: 1
+    input: isoformDB/downloads/K562/transcript_annotation.gtf.gz, isoformDB/downloads/K562/quantitation.tsv, isoformDB/references/grch38.gencode.v29/cannonical_genes.gff
+    output: isoformDB/database/is_long_read=true/reference_id=grch38.gencode.v29/dataset_id=K562
+    shell:
+        
+        python /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/scripts/write_records.py \
+            --gene-annotation isoformDB/references/grch38.gencode.v29/cannonical_genes.gff \
+            --quantitation isoformDB/downloads/K562/quantitation.tsv \
+            --transcript-annotation isoformDB/downloads/K562/transcript_annotation.gtf.gz \
+            --output-path isoformDB/database/ \
+            --reference-id grch38.gencode.v29 \
+            --dataset-id K562 \
+            --weight-key rep2ENCSR983KDL \
+            --transcript-id-key annot_transcript_id \
+            --celltypes K562 \
+
+        
+        (command exited with non-zero exit code)
+Complete log(s): /Users/allen/projects/dna_lang/lariat/lariat/database/pipeline/.snakemake/log/2025-09-28T160343.053318.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

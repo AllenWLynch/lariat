@@ -1,0 +1,26 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                  count
+-----------------  -------
+write_dset_config        1
+total                    1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Fri Aug 22 16:18:45 2025]
+localrule write_dset_config:
+    output: isoformDB/db_records.json
+    jobid: 0
+    reason: Missing output files: isoformDB/db_records.json
+    resources: tmpdir=/var/folders/tk/bdsgytmn5cb0bfqrftv10n8r0000gq/T
+Shell command: None
+[Fri Aug 22 16:18:47 2025]
+Finished jobid: 0 (Rule: write_dset_config)
+1 of 1 steps (100%) done
+Complete log(s): /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/database/pipeline/.snakemake/log/2025-08-22T161845.585023.snakemake.log

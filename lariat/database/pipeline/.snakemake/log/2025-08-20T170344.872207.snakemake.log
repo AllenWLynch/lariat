@@ -1,0 +1,11 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+InputFunctionException in rule make_intervals in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 88:
+Error:
+  KeyError: 'reference_id'
+Wildcards:
+  dataset_id=K562
+Traceback:
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 89, in <lambda> (rule make_intervals, line 114, /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk)

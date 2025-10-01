@@ -1,0 +1,12 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Allens MacBook
+Building DAG of jobs...
+InputFunctionException in rule write_gene_records in file "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 219:
+Error:
+  AttributeError: 'Namedlist' object has no attribute 'format'
+Wildcards:
+  partition=train
+  dataset_id=K562
+Traceback:
+  File "/Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk", line 222, in <lambda> (rule write_gene_records, line 360, /Users/allen/projects/dna_lang/pytorch_borzoi/isoformer/pipeline/isoform_db.smk)

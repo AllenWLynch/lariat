@@ -1,6 +1,0 @@
-Assuming unrestricted shared filesystem usage.
-None
-host: Allens MacBook
-Building DAG of jobs...
-MissingRuleException:
-No rule to produce isoformDB/K562/dataset.parquet/dataset_id=K562/partition=true (if you use input functions make sure that they don't raise unexpected exceptions).

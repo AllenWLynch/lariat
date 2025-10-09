@@ -7,15 +7,14 @@ class BamConfig(pydantic.BaseModel):
     bam_file: str = Field(
         ..., description="Path to the BAM file containing long-read alignments."
     )
-    cage_file: str = Field(..., description="Path to the CAGE TSV file.")
+    cage_file: Optional[str] = Field(None, description="Path to the CAGE TSV file.")
     umi_tag: Optional[str] = Field(
         None, description="Optional BAM tag for UMI sequences."
     )
     cell_barcode_tag: Optional[str] = Field(
         None, description="Optional BAM tag for cell barcodes."
     )
-
-
+  
 class DatasetBase(pydantic.BaseModel):
     link: Optional[str] = Field(
         None, description="Optional URL link to the dataset source."
@@ -147,6 +146,9 @@ class ShortReadDataset(pydantic.BaseModel):
         ..., description="Source data configuration for short-read datasets."
     )
     is_long_read: Literal[False]
+    strand_specificity: str = Field(
+        ..., description="Strand specificity of RNA library preparation (forward, reverse, unstranded)."
+    )
 
 
 class SingleCellLongReadDset(LongReadDset, SingleCellDataset):
@@ -191,7 +193,6 @@ class ReferenceConfig(pydantic.BaseModel):
     transcript_id_key: str = Field("ID")
     gene_id_key: str = Field("geneID")
 
-
 class IsoformDBCollection(pydantic.BaseModel):
     datasets: Dict[str, IsoformDset] = Field(...)
     references: Dict[str, ReferenceConfig] = Field(...)
@@ -226,3 +227,14 @@ class IsoformDBCollection(pydantic.BaseModel):
                 raise ValueError(
                     f"Reference {sample.reference} for sample {sample_id} not found in dataset references."
                 )
+        
+        # Validate short read specificity config values -CZ
+        valid_values = {"forward", "reverse", "unstranded"}
+        for sample_id, sample in self.datasets.items():
+            if isinstance(sample, (BulkShortReadDset, SingleCellShortReadDset)):
+                if sample.strand_specificity not in valid_values:
+                    raise ValueError(
+                        f"Invalid strand_specificity '{sample.strand_specificity}"
+                        f"for sample '{sample_id}. Must be one of {valid_values}."
+                    )
+

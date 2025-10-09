@@ -32,11 +32,14 @@ rule download_quantitation:
         DOWNLOAD
 
 rule download_bam:
-    output: DB_path_temp("downloads/{dataset_id}/data.bam")
+    output: 
+        bam=DB_path_temp("downloads/{dataset_id}/data.bam")
     params:
         url=lambda w : sample_config(w).source_data.bam_file
     shell:
-        DOWNLOAD
+        """
+        wget -O {output.bam} {params.url}
+        """
 
 rule download_cage:
     output: DB_path("downloads/{dataset_id}/data.cage.bed.gz")

@@ -14,9 +14,24 @@ datasets:
         weight_key: rep2ENCSR983KDL
     reference: grch38.gencode.v29
     technology_name: Sequel
+  ENCFF894FXL:
+    is_long_read: false
+    is_single_cell: false
+    celltypes:
+      K562: 1.0
+    strand_specificity: forward
+    source_data:
+      bam_file: https://www.encodeproject.org/files/ENCFF894FXL/@@download/ENCFF894FXL.bam 
+    reference: grch38.gencode.v49
+    technology_name: HiSeq2000
+
 
 references:
   grch38.gencode.v29:
     gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.basic.annotation.gtf.gz
-    fasta_file: /Users/allen/genomes/hg38/hg38.fa
+    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
+    species: Homo sapiens
+  grch38.gencode.v49:
+    gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.annotation.gtf.gz 
+    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
     species: Homo sapiens

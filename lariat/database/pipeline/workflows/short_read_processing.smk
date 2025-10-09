@@ -8,7 +8,7 @@ rule process_bulk_sr_bam:
         genome=sample_genome,
         reference_annotation=sample_ref_annotation,
     output:
-        junctions=temp(partial_format(JUNCTIONS_PATH, bulk_level="bulk")),
+        junctions=temp(partial_format(JUNCTIONS_PATH, bulk_level="bulk"))
 
 
 rule process_sc_sr_bam:

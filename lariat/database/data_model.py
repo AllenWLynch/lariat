@@ -277,7 +277,7 @@ class DBRecord:
         )
 
     @classmethod
-    def to_pyarrow_table(cls, genes: list[IsoformRecord]) -> "pa.Table":
+    def to_pyarrow_table(cls, genes: list[IsoformRecord] | list[JunctionRecord]) -> "pa.Table":
         import pyarrow as pa
 
         if not genes:

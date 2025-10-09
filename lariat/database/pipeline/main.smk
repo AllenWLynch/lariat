@@ -5,6 +5,7 @@ import json
 from functools import partial
 import string
 import config_models
+from lariat.genome_utils import StrandSpecificity
 
 SCRIPTS_DIR = config.pop("scripts")
 
@@ -13,7 +14,8 @@ config = config_models.IsoformDBCollection.model_validate(config)
 wildcard_constraints:
     bulk_level="bulk|single-cell",
     read_type="long|short",
-    dataset_id="[^/]+",
+    dataset_id="[^./]+",
+    reference_id=r"[^./]+(?:\.[^./]+)*",
     celltype="[^/]+",
 
 class PartialFormatter(string.Formatter):
@@ -35,7 +37,7 @@ def DB_path_temp(*filenames):
 ##
 # Define the interfaces
 ##
-JUNCTIONS_PATH = DB_path("processed/{dataset_id}/short.{bulk_level}.junctions.bed.gz") # short read only
+JUNCTIONS_PATH = DB_path("processed/{dataset_id}/short.{bulk_level}.junctions.bed") # short read only
 ANNOTATION_PATH = DB_path("processed/{dataset_id}/long.{bulk_level}.transcript_annotation.gtf.gz") # long read only
 QUANTITATION_PATH = DB_path("processed/{dataset_id}/long.{bulk_level}.quantitation.tsv") # long read only
 COUNT_MATRIX_PATH = DB_path("processed/{dataset_id}/{read_type}.single-cell.count_matrix.h5ad") # single-cell only
@@ -64,6 +66,7 @@ rule all:
                 for reference_id in config.references.keys()
             ]
         )
+
 
 def is_url(filename: str) -> bool:
     return urllib.parse.urlparse(filename).scheme in ["http", "https", "ftp"]
@@ -96,6 +99,15 @@ def reference_config(wildcards):
 def sample_ref_id(wildcards):
     return sample_config(wildcards).reference
 
+def get_sr_strand_specificity(wildcards):
+    str_spec = sample_config(wildcards).strand_specificity
+    if str_spec == "forward":
+        return str(StrandSpecificity.forward)
+    elif str_spec == "reverse":
+        return str(StrandSpecificity.reverse)
+    else:
+        return str(StrandSpecificity.unstranded)
+
 def get_bulk_level(wildcards):
     return "single-cell" if sample_config(wildcards).is_single_cell else "bulk"
 
@@ -126,11 +138,23 @@ def sample_genome(wildcards):
         rules.download_ref_genome.output[0].format(reference_id=ref_id)
     )
 
+def reference_genome(wildcards): # For rules that don't pass dataset_id as a wildcard -CZ
+    return symlink_or_download(
+        config.references[wildcards.reference_id].fasta_file,
+        rules.download_ref_genome.output[0].format(reference_id=wildcards.reference_id)
+    )
+
 def sample_ref_annotation(wildcards):
     ref_id = sample_config(wildcards).reference
     return symlink_or_download(
         config.references[ref_id].gene_annotation_file,
         rules.download_ref_annotation.output[0].format(reference_id=ref_id)
+    )
+
+def reference_annotation(wildcards): # For rules that don't pass dataset_id as a wildcard -CZ
+    return symlink_or_download(
+        config.references[wildcards.reference_id].gene_annotation_file,
+        rules.download_ref_annotation.output[0].format(reference_id=wildcards.reference_id)
     )
 
 def sample_bam(wildcards):
@@ -155,13 +179,25 @@ def sample_quantitation(wildcards):
 
 def sample_annotation(wildcards):
     sample = sample_config(wildcards)
-    if not sample.is_precomputed:
-        return ANNOTATION_PATH.format(
-            dataset_id=wildcards.dataset_id,
-            bulk_level=get_bulk_level(wildcards),
-        )
+    if isinstance(sample, config_models.LongReadDset):
+        if not sample.is_precomputed:
+            return ANNOTATION_PATH.format(
+                dataset_id=wildcards.dataset_id,
+                bulk_level=get_bulk_level(wildcards),
+            )
     annotation = sample.source_data.annotation.file
     return file_or_download(annotation, rules.download_annotation.output)
+
+def sample_bedtools_intersect(wildcards):
+    ref_id = sample_ref_id(wildcards)
+    return DB_path(f"intermediates/{wildcards.dataset_id}.{ref_id}.junctions.intersect.bed")
+
+def sample_junctions(wildcards):
+    return JUNCTIONS_PATH.format(
+        dataset_id=wildcards.dataset_id,
+        reference_id=sample_ref_id(wildcards),
+        bulk_level=get_bulk_level(wildcards),
+    )
 
 def print_return(fn):
     def wrapper(wildcards):
@@ -189,7 +225,7 @@ def celltype_clusters(wildcards):
     )
 
 include: "workflows/long_read_processing.smk"
-include: "workflows/short_read_processing.smk"
+# include: "workflows/short_read_processing.smk"
 #include: "workflows/deconvolution.smk"
 
 ##
@@ -221,11 +257,10 @@ def celltype_fractions(wildcards):
         read_type=get_read_type(wildcards),
     )
 
-def format_argstring(wildcards):
-
-    def _format_celltypes(celltypes: Dict[str, float]) -> str:
+def format_celltypes(celltypes: Dict[str, float]) -> str:
         return "--celltypes " + ",".join([f"{ct}:{weight}" for ct, weight in celltypes.items()]) + " \\\n"
 
+def format_lr_argstring(wildcards):
     sample = sample_config(wildcards)
     reference_id = sample_ref_id(wildcards)
 
@@ -255,12 +290,11 @@ def format_argstring(wildcards):
         with open(fractions_file) as cf:
             celltypes = json.load(cf)
         
-        argstring += _format_celltypes(celltypes)
+        argstring += format_celltypes(celltypes)
     else:
-        argstring += _format_celltypes(sample.celltypes)
+        argstring += format_celltypes(sample.celltypes)
         
     return argstring
-
 
 rule write_lr_records:
     input:
@@ -269,15 +303,15 @@ rule write_lr_records:
         intervals=get_intervals,
         celltypes=celltype_fractions,
     output:
-        directory(partial_format(DATASET_COMMITTED, read_type="true")),
+        directory(partial_format(DATASET_COMMITTED, is_long_read="true")),
     params:
         database_path=DB_path("database/"),
         scripts_dir=SCRIPTS_DIR,
-        argstring=format_argstring,
+        argstring=format_lr_argstring,
     priority: 1000
     shell:
         """
-        python {params.scripts_dir}/write_records.py \\
+        python {params.scripts_dir}/write_lr_records.py \\
             --gene-annotation {input.intervals} \\
             --quantitation {input.quantitation} \\
             --transcript-annotation {input.isoforms} \\
@@ -285,19 +319,132 @@ rule write_lr_records:
             {params.argstring}
         """
 
+# Step 1 in CZ pipeline -- index BAM & regtools junctions extract
+rule junctions_extract:
+    input:
+        bam=sample_bam
+    output:
+        bed=temp(DB_path("intermediates/{dataset_id}.junctions.extract.bed")),
+        bai=temp(DB_path("downloads/{dataset_id}/data.bam.bai"))
+    params:
+        str_spec=get_sr_strand_specificity
+    shell:
+        """
+        samtools index {input.bam} {output.bai}
+        regtools junctions extract -s {params.str_spec} {input.bam} > {output.bed}
+        """
+
+# Step 2 of CZ pipeline -- index and cut FASTA, and unzip reference annotation
+rule index_and_cut_fasta_unzip_ref_annotation:
+    input:
+        ref_genome=reference_genome,
+        ref_annot=reference_annotation
+    output:
+        fai=temp(DB_path("intermediates/{reference_id}.fai")),
+        chrm_sizes=temp(DB_path("intermediates/{reference_id}.chrm_sizes.tsv")),
+        gtf=temp(DB_path("intermediates/{reference_id}.gtf"))
+    shell:
+        """
+        samtools faidx {input.ref_genome}
+        cp {input.ref_genome}.fai {output.fai}
+        cut -f1,2 {output.fai} > {output.chrm_sizes}
+        rm {input.ref_genome}.fai
+        gunzip -c {input.ref_annot} > {output.gtf}
+        """
+
+# Step 3 in CZ pipeline -- regtools junctions annotate
+rule junctions_annotate:
+    input:
+        junc_extr=DB_path("intermediates/{dataset_id}.junctions.extract.bed"),
+        ref_genome=sample_genome,
+        fai=DB_path("intermediates/{reference_id}.fai"),
+        ref_annot=DB_path("intermediates/{reference_id}.gtf")
+    output:
+        junc_annot=temp(DB_path("intermediates/{dataset_id}.{reference_id}.junctions.annotate.bed"))
+    shell:
+        """
+        regtools junctions annotate {input.junc_extr} {input.ref_genome} {input.ref_annot} > {output.junc_annot}
+        """
+
+# Step 4 of CZ pipeline -- extend TSS and TES of every gene by 512 bp on both sides & group all transcripts by gene
+rule collapse_transcripts:
+    input:
+        ref_annot=DB_path("intermediates/{reference_id}.gtf"),
+        chrm_sizes=DB_path("intermediates/{reference_id}.chrm_sizes.tsv")
+    output:
+        temp(DB_path("intermediates/{reference_id}.annotated.collapsed.bed"))
+    params:
+        scripts_dir=SCRIPTS_DIR
+    shell:
+        """
+        gffread {input.ref_annot} -W |
+        bedtools slop -i - -g {input.chrm_sizes} -b 512 |
+        python {params.scripts_dir}/collapse_transcripts.py > {output}
+        """
+
+# Step 5 of CZ pipeline -- intersect junction data w/ reference genome gene data
+rule bedtools_intersect:
+    input:
+        junc_annot=DB_path("intermediates/{dataset_id}.{reference_id}.junctions.annotate.bed"),
+        ref_annot_collapsed=DB_path("intermediates/{reference_id}.annotated.collapsed.bed")
+    output:
+        temp(DB_path("intermediates/{dataset_id}.{reference_id}.junctions.intersect.bed"))
+    shell:
+        """
+        bedtools intersect -a {input.junc_annot} -b {input.ref_annot_collapsed} -wa -wb -s -f 1.0 | 
+        cut -f1-14,19-21,24 > {output}
+        """
+
+# Step 6 of CZ pipeline -- calculate junction start & end offsets based on gene start index, store output in tuple form
+rule calculate_offsets_tuples:
+    input:
+        junc_inter=sample_bedtools_intersect
+    output:
+        bed_file=temp(partial_format(JUNCTIONS_PATH, bulk_level="bulk"))
+    params:
+        scripts_dir=SCRIPTS_DIR
+    shell:
+        """
+        python {params.scripts_dir}/calculate_junc_annot_offsets.py < {input.junc_inter} > {output.bed_file}
+        """
+
+def format_sr_argstring(wildcards):
+    sample = sample_config(wildcards)
+    reference_id = sample_ref_id(wildcards)
+
+    argstring = f"""--reference-id {reference_id} \\
+            --dataset-id {wildcards.dataset_id} \\
+            """
+    
+    if sample.is_single_cell:
+        argstring += "--is-single-cell" 
+    
+    argstring += format_celltypes(sample.celltypes)
+    argstring += f"--technology-name {sample.technology_name}"
+        
+    return argstring
+
+# Read junction tuples BED file and write into DB as JunctionRecords -CZ
 rule write_sr_records:
     input:
-        junctions=JUNCTIONS_PATH,
-        celltypes=celltype_fractions,
         intervals=get_intervals,
+        celltypes=celltype_fractions,
+        bed_file=sample_junctions
     output:
-        directory(partial_format(DATASET_COMMITTED, is_long_read="false")),
+        directory(partial_format(DATASET_COMMITTED, is_long_read="false"))
     params:
-        config_serialized=update_config,
         database_path=DB_path("database/"),
-        scripts_dir=SCRIPTS_DIR
+        scripts_dir=SCRIPTS_DIR,
+        argstring=format_sr_argstring,
     priority: 1000
-
+    shell:
+        """
+        python {params.scripts_dir}/write_sr_records.py \\
+            --gene-annotation {input.intervals} \\
+            --output-path {params.database_path} \\
+            --bed-file {input.bed_file} \\
+            {params.argstring}
+        """
 
 rule commit_reference:
     input:

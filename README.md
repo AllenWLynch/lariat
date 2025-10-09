@@ -17,7 +17,9 @@ $ pip install ".[pipeline]"
 
 ## For reference
 
-The implementation of my database writer for long read data can be found at `lariat/database/pipeline/scripts/write_records.py`.
+The implementation of my database writer for long read data can be found at `lariat/database/pipeline/scripts/write_lr_records.py`.
+
+The implementation of my database writer for short read data can be found at `lariat/database/pipeline/scripts/write_sr_records.py`.
 
 ## Using the DB
 

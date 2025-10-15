@@ -40,7 +40,8 @@ all = [
 [project.scripts]
 lariat-compose = "lariat.database.pipeline.run_pipeline:main"
 lariat-select-transcripts = "lariat.database.pipeline.scripts.select_canonical_gene:main"
-lariat-lr-commit = "lariat.database.pipeline.scripts.write_records:main"
+lariat-lr-commit = "lariat.database.pipeline.scripts.write_lr_records:main"
+lariat-sr-commit = "lariat.database.pipeline.scripts.write_sr_records:main"
 lariat-make-trackdb = "lariat.database.tracks.run_pipeline:main"
 lariat-download-encode = "lariat.database.tracks.encode:main"
 

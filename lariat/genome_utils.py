@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import IntEnum, Enum
 from functools import wraps
 from typing import Any, Iterable, Tuple
 
@@ -11,6 +11,29 @@ __all__ = [
     "stream_regions",
 ]
 
+class StrandSpecificity(Enum):
+    forward = "FR" # String representation is -s flag for regtools junctions extract -CZ
+    reverse = "RF"
+    unstranded = "XS"
+
+    def __str__(self):
+        if self == StrandSpecificity.forward:
+            return "FR"
+        elif self == StrandSpecificity.reverse:
+            return "RF"
+        else:
+            return "XS"
+    
+    @classmethod
+    def from_str(cls, strand_spec_str: str) -> "StrandSpecificity":
+        if strand_spec_str == "FR":
+            return StrandSpecificity.forward
+        elif strand_spec_str == "RF":
+            return StrandSpecificity.reverse
+        elif strand_spec_str == "XS":
+            return StrandSpecificity.unstranded
+        else:
+            raise ValueError(f"Invalid strand: {strand_spec_str}")
 
 class Strand(IntEnum):
     plus = 1

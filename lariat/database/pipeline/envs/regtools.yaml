@@ -1,0 +1,8 @@
+name: regtools
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - regtools
+  - samtools

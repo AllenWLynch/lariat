@@ -8,7 +8,6 @@ import config_models
 from lariat.genome_utils import StrandSpecificity
 
 SCRIPTS_DIR = config.pop("scripts")
-
 config = config_models.IsoformDBCollection.model_validate(config)
 
 wildcard_constraints:
@@ -34,6 +33,11 @@ def DB_path(*filenames):
 def DB_path_temp(*filenames):
     return temp(DB_path(*filenames))
 
+def double_on_attempt(base_resource):
+    def resource_function(wildcards, attempt):
+        return base_resource * (2 ** (attempt - 1))
+    return resource_function
+    
 ##
 # Define the interfaces
 ##
@@ -84,7 +88,10 @@ def symlink_or_download(filename, alt):
     if not is_gzipped and alt.endswith(".gz"):
         alt = alt.removesuffix(".gz")
 
-    os.makedirs(os.path.dirname(alt), exist_ok=True)
+    dirname = os.path.dirname(alt)
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname, exist_ok=True)
+        
     if os.path.exists(alt):
         os.remove(alt)
     os.symlink(os.path.abspath(filename), alt)
@@ -131,6 +138,12 @@ def reference_genome(wildcards):
         rules.download_ref_genome.output[0].format(reference_id=wildcards.reference_id)
     )
 
+def reference_annotation(wildcards): # For rules that don't pass dataset_id as a wildcard -CZ
+    return symlink_or_download(
+        config.references[wildcards.reference_id].gene_annotation_file,
+        rules.download_ref_annotation.output[0].format(reference_id=wildcards.reference_id)
+    )
+
 def sample_genome(wildcards):
     ref_id = sample_config(wildcards).reference
     return symlink_or_download(
@@ -138,23 +151,11 @@ def sample_genome(wildcards):
         rules.download_ref_genome.output[0].format(reference_id=ref_id)
     )
 
-def reference_genome(wildcards): # For rules that don't pass dataset_id as a wildcard -CZ
-    return symlink_or_download(
-        config.references[wildcards.reference_id].fasta_file,
-        rules.download_ref_genome.output[0].format(reference_id=wildcards.reference_id)
-    )
-
 def sample_ref_annotation(wildcards):
     ref_id = sample_config(wildcards).reference
     return symlink_or_download(
         config.references[ref_id].gene_annotation_file,
         rules.download_ref_annotation.output[0].format(reference_id=ref_id)
-    )
-
-def reference_annotation(wildcards): # For rules that don't pass dataset_id as a wildcard -CZ
-    return symlink_or_download(
-        config.references[wildcards.reference_id].gene_annotation_file,
-        rules.download_ref_annotation.output[0].format(reference_id=wildcards.reference_id)
     )
 
 def sample_bam(wildcards):
@@ -188,10 +189,6 @@ def sample_annotation(wildcards):
     annotation = sample.source_data.annotation.file
     return file_or_download(annotation, rules.download_annotation.output)
 
-def sample_bedtools_intersect(wildcards):
-    ref_id = sample_ref_id(wildcards)
-    return DB_path(f"intermediates/{wildcards.dataset_id}.{ref_id}.junctions.intersect.bed")
-
 def sample_junctions(wildcards):
     return JUNCTIONS_PATH.format(
         dataset_id=wildcards.dataset_id,
@@ -210,13 +207,51 @@ def print_return(fn):
         return result
     return wrapper
 
+# AL - moved genome indexing to its own rule, we now require 
+# indexing to commit the reference.
+rule index_genome:
+    input:
+        fasta=reference_genome
+    output:
+        fai=DB_path("references/{reference_id}/genome.fa.fai"),
+        chromsizes=DB_path("references/{reference_id}/chromsizes.txt")
+    conda: "envs/samtools.yaml"
+    shell:
+        """
+        samtools faidx {input.fasta} -o {output.fai}
+        cut -f1,2 {output.fai} > {output.chromsizes}
+        """
+
+def reference_fai(wildcards):
+    return rules.index_genome.output.fai.format(reference_id=wildcards.reference_id)
+
+def reference_chromsizes(wildcards):
+    return rules.index_genome.output.chromsizes.format(reference_id=wildcards.reference_id)
+
+def reference_data(wildcards):
+    return {
+        "fasta": reference_genome(wildcards),
+        "fai": reference_fai(wildcards),
+        "annotation": reference_annotation(wildcards),
+        "chromsizes": reference_chromsizes(wildcards),
+    }
+
+rule commit_reference:
+    input: 
+        lambda wildcards: reference_data(wildcards).values()
+    output: REF_COMMITTED
+    params:
+        species_name=lambda wildcards: config.references[wildcards.reference_id].species,
+    run:
+        with open(output[0], 'w') as f:
+            f.write(params.species_name + '\n')
+
 
 rule cluster_cells:
     input:
         count_matrix=COUNT_MATRIX_PATH,
     output:
         cluster_ids=DB_path_temp(CELLTYPE_CLUSTERS_PATH)
-        
 
 def celltype_clusters(wildcards):
     return CELLTYPE_CLUSTERS_PATH.format(
@@ -225,8 +260,9 @@ def celltype_clusters(wildcards):
     )
 
 include: "workflows/long_read_processing.smk"
+include: "workflows/junction_processing.smk"
 # include: "workflows/short_read_processing.smk"
-#include: "workflows/deconvolution.smk"
+# include: "workflows/deconvolution.smk"
 
 ##
 # Ingestion
@@ -319,95 +355,6 @@ rule write_lr_records:
             {params.argstring}
         """
 
-# Step 1 in CZ pipeline -- index BAM & regtools junctions extract
-rule junctions_extract:
-    input:
-        bam=sample_bam
-    output:
-        bed=temp(DB_path("intermediates/{dataset_id}.junctions.extract.bed")),
-        bai=temp(DB_path("downloads/{dataset_id}/data.bam.bai"))
-    params:
-        str_spec=get_sr_strand_specificity
-    shell:
-        """
-        samtools index {input.bam} {output.bai}
-        regtools junctions extract -s {params.str_spec} {input.bam} > {output.bed}
-        """
-
-# Step 2 of CZ pipeline -- index and cut FASTA, and unzip reference annotation
-rule index_and_cut_fasta_unzip_ref_annotation:
-    input:
-        ref_genome=reference_genome,
-        ref_annot=reference_annotation
-    output:
-        fai=temp(DB_path("intermediates/{reference_id}.fai")),
-        chrm_sizes=temp(DB_path("intermediates/{reference_id}.chrm_sizes.tsv")),
-        gtf=temp(DB_path("intermediates/{reference_id}.gtf"))
-    shell:
-        """
-        samtools faidx {input.ref_genome}
-        cp {input.ref_genome}.fai {output.fai}
-        cut -f1,2 {output.fai} > {output.chrm_sizes}
-        rm {input.ref_genome}.fai
-        gunzip -c {input.ref_annot} > {output.gtf}
-        """
-
-# Step 3 in CZ pipeline -- regtools junctions annotate
-rule junctions_annotate:
-    input:
-        junc_extr=DB_path("intermediates/{dataset_id}.junctions.extract.bed"),
-        ref_genome=sample_genome,
-        fai=DB_path("intermediates/{reference_id}.fai"),
-        ref_annot=DB_path("intermediates/{reference_id}.gtf")
-    output:
-        junc_annot=temp(DB_path("intermediates/{dataset_id}.{reference_id}.junctions.annotate.bed"))
-    shell:
-        """
-        regtools junctions annotate {input.junc_extr} {input.ref_genome} {input.ref_annot} > {output.junc_annot}
-        """
-
-# Step 4 of CZ pipeline -- extend TSS and TES of every gene by 512 bp on both sides & group all transcripts by gene
-rule collapse_transcripts:
-    input:
-        ref_annot=DB_path("intermediates/{reference_id}.gtf"),
-        chrm_sizes=DB_path("intermediates/{reference_id}.chrm_sizes.tsv")
-    output:
-        temp(DB_path("intermediates/{reference_id}.annotated.collapsed.bed"))
-    params:
-        scripts_dir=SCRIPTS_DIR
-    shell:
-        """
-        gffread {input.ref_annot} -W |
-        bedtools slop -i - -g {input.chrm_sizes} -b 512 |
-        python {params.scripts_dir}/collapse_transcripts.py > {output}
-        """
-
-# Step 5 of CZ pipeline -- intersect junction data w/ reference genome gene data
-rule bedtools_intersect:
-    input:
-        junc_annot=DB_path("intermediates/{dataset_id}.{reference_id}.junctions.annotate.bed"),
-        ref_annot_collapsed=DB_path("intermediates/{reference_id}.annotated.collapsed.bed")
-    output:
-        temp(DB_path("intermediates/{dataset_id}.{reference_id}.junctions.intersect.bed"))
-    shell:
-        """
-        bedtools intersect -a {input.junc_annot} -b {input.ref_annot_collapsed} -wa -wb -s -f 1.0 | 
-        cut -f1-14,19-21,24 > {output}
-        """
-
-# Step 6 of CZ pipeline -- calculate junction start & end offsets based on gene start index, store output in tuple form
-rule calculate_offsets_tuples:
-    input:
-        junc_inter=sample_bedtools_intersect
-    output:
-        bed_file=temp(partial_format(JUNCTIONS_PATH, bulk_level="bulk"))
-    params:
-        scripts_dir=SCRIPTS_DIR
-    shell:
-        """
-        python {params.scripts_dir}/calculate_junc_annot_offsets.py < {input.junc_inter} > {output.bed_file}
-        """
-
 def format_sr_argstring(wildcards):
     sample = sample_config(wildcards)
     reference_id = sample_ref_id(wildcards)
@@ -445,14 +392,3 @@ rule write_sr_records:
             --bed-file {input.bed_file} \\
             {params.argstring}
         """
-
-rule commit_reference:
-    input:
-        annotation=reference_annotation,
-        genome=reference_genome,
-    output: REF_COMMITTED
-    params:
-        species_name=lambda wildcards: config.references[wildcards.reference_id].species,
-    run:
-        with open(output[0], 'w') as f:
-            f.write(params.species_name + '\n')

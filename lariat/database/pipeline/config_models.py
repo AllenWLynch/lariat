@@ -150,6 +150,14 @@ class ShortReadDataset(pydantic.BaseModel):
         ..., description="Strand specificity of RNA library preparation (forward, reverse, unstranded)."
     )
 
+    @pydantic.field_validator("strand_specificity")
+    @classmethod
+    def validate_strand_specificity(cls, v):
+        valid_values = {"forward", "reverse", "unstranded"}
+        if v not in valid_values:
+            raise ValueError(f"Invalid strand_specificity '{v}'. Must be one of {valid_values}.")
+        return v
+
 
 class SingleCellLongReadDset(LongReadDset, SingleCellDataset):
     pass
@@ -199,10 +207,13 @@ class IsoformDBCollection(pydantic.BaseModel):
     db_prefix: str = Field(
         "isoformDB/", description="Prefix path for the database files."
     )
-    train_size: float = Field(
-        0.8, description="Proportion of the dataset to be used for training."
-    )
     celltype_embeddings: str = "TSF_embeddings/"
+    junction_min_count_known: int = Field(
+        2, description="Minimum junction count to include in the database."
+    )
+    junction_min_count_unknown: int = Field(
+        5, description="Minimum junction count to include in the database."
+    )
 
     @pydantic.field_validator("datasets")
     @classmethod
@@ -227,14 +238,3 @@ class IsoformDBCollection(pydantic.BaseModel):
                 raise ValueError(
                     f"Reference {sample.reference} for sample {sample_id} not found in dataset references."
                 )
-        
-        # Validate short read specificity config values -CZ
-        valid_values = {"forward", "reverse", "unstranded"}
-        for sample_id, sample in self.datasets.items():
-            if isinstance(sample, (BulkShortReadDset, SingleCellShortReadDset)):
-                if sample.strand_specificity not in valid_values:
-                    raise ValueError(
-                        f"Invalid strand_specificity '{sample.strand_specificity}"
-                        f"for sample '{sample_id}. Must be one of {valid_values}."
-                    )
-

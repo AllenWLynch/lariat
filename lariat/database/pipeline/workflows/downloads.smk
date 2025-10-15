@@ -37,9 +37,7 @@ rule download_bam:
     params:
         url=lambda w : sample_config(w).source_data.bam_file
     shell:
-        """
-        wget -O {output.bam} {params.url}
-        """
+        DOWNLOAD
 
 rule download_cage:
     output: DB_path("downloads/{dataset_id}/data.cage.bed.gz")

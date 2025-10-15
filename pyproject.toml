@@ -29,7 +29,8 @@ dev = [
     "black",
 ]
 pipeline = [
-    "snakemake", 
+    "snakemake",
+    "snakemake-executor-plugin-slurm",
 ]
 train = ["tensorboard"]
 

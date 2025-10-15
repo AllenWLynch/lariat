@@ -18,6 +18,21 @@ def main() -> None:
         help="Path to Snakemake config file (YAML/JSON)",
     )
     parser.add_argument(
+        "--cluster",
+        action="store_true",
+        help="Run on a SLURM cluster",
+    )
+    parser.add_argument(
+        "--partition",
+        default="short,park",
+        help="SLURM partition to use",
+    )
+    parser.add_argument(
+        "--account",
+        default="park",
+        help="SLURM account to use",
+    )
+    parser.add_argument(
         "--cores",
         "-c",
         type=int,
@@ -57,6 +72,25 @@ def main() -> None:
         "--directory",
         str(os.getcwd()),
     ]
+
+    if args.cluster: 
+        cmd.extend(
+            [
+                '--executor','slurm',
+                '--default-resources',
+                f'slurm_partition={args.partition}',
+                f'slurm_account={args.account}',
+                '--latency-wait','60',
+                '--restart-times','3',
+            ]
+        )
+    else:
+        cmd.extend(
+            [
+                '--latency-wait', '5', 
+                '--restart-times', '0',
+            ]
+        )
 
     # Forward all user-specified args
     cmd.extend(unknown)

@@ -8,6 +8,7 @@ __all__ = [
     "Region",
     "GFFRecord",
     "BED12Record",
+    "stream_regions",
 ]
 
 
@@ -411,3 +412,13 @@ class BED12Record:
                     "ID": f"{self.name}.exon{i+1}",
                 },
             )
+
+def stream_regions(path: str) -> Iterable[Region]:
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            chrom, start, end, *rest = line.strip().split("\t")
+            start = int(start)
+            end = int(end)
+            yield Region(chrom=chrom, start=start, end=end)

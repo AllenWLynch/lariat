@@ -1,0 +1,10 @@
+name: wiggletools
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - wiggletools
+  - ucsc-wigtobigwig
+  - pybigwig
+  - python=3.11  # optional, if needed for Snakemake scripts

@@ -11,3 +11,5 @@ testing.ipynb
 isoformDB/
 *.egg-info/
 build/
+*.log
+.snakemake/

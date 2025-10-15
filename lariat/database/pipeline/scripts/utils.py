@@ -55,7 +55,7 @@ def read_as_tlf(filename: str, cds_only=False) -> Iterable[str]:
 
 
 def read_genes(
-    gene_annotation_file: str,
+    gene_annotation_file: str, # gtf/gff file
     dataset_id: Optional[str] = None,
     reference_id: Optional[str] = None,
 ) -> Dict[str, Dict[str, Any]]:

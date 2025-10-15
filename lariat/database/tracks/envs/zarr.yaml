@@ -1,0 +1,9 @@
+name: zarr
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - zarr
+  - pybigwig
+  - tqdm
+  - numpy

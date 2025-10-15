@@ -1,0 +1,8 @@
+name: bigwig_from_bam
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bedtools
+  - samtools
+  - ucsc-bedgraphtobigwig

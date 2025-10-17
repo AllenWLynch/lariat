@@ -8,12 +8,12 @@ rule junctions_extract:
     params:
         str_spec=get_sr_strand_specificity
     conda: "../envs/regtools.yaml"
-    log: "logs/junctions_extract/{dataset_id}-{reference_id}.log"
-    benchmark: "benchmarks/junctions_extract/{dataset_id}-{reference_id}.txt"
+    log: "logs/junctions_extract/{dataset_id}.log"
+    benchmark: "benchmarks/junctions_extract/{dataset_id}.txt"
     shadow: "shallow"
     threads: 1
     resources:
-        mem_mb=double_on_attempt(1024*5) # base memory: 5 GB
+        mem_mb=double_on_attempt(1024*5), # base memory: 5 GB
         runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
@@ -37,7 +37,7 @@ rule junctions_annotate:
                       # are written to a temp directory so they are cleaned up after the rule completes.
     threads: 1
     resources:
-        mem_mb=double_on_attempt(1024*5) # base memory: 5 GB
+        mem_mb=double_on_attempt(1024*5), # base memory: 5 GB
         runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
@@ -53,14 +53,14 @@ rule collapse_transcripts:
     output:
        DB_path_temp("intermediates/{reference_id}/annotated.collapsed.bed")
     conda: "../envs/gffread.yaml"
-    log: "logs/collapse_transcripts/{dataset_id}-{reference_id}.log"
-    benchmark: "benchmarks/collapse_transcripts/{dataset_id}-{reference_id}.txt"
+    log: "logs/collapse_transcripts/{reference_id}.log"
+    benchmark: "benchmarks/collapse_transcripts/{reference_id}.txt"
     shadow: "shallow"
     params:
         scripts_dir=SCRIPTS_DIR
     threads: 1
     resources:
-        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        mem_mb=double_on_attempt(1024*2), # base memory: 2 GB
         runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
@@ -83,7 +83,7 @@ rule bedtools_intersect:
     shadow: "shallow"
     threads: 1
     resources:
-        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        mem_mb=double_on_attempt(1024*2), # base memory: 2 GB
         runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
@@ -107,12 +107,12 @@ rule calculate_offsets_tuples:
         scripts_dir=SCRIPTS_DIR,
         known=config.junction_min_count_known,
         unknown=config.junction_min_count_unknown,
-    log: "logs/calculate_offsets_tuples/{dataset_id}-{reference_id}.log"
-    benchmark: "benchmarks/calculate_offsets_tuples/{dataset_id}-{reference_id}.txt"
+    log: "logs/calculate_offsets_tuples/{dataset_id}.log"
+    benchmark: "benchmarks/calculate_offsets_tuples/{dataset_id}.txt"
     shadow: "shallow"
     threads: 1
     resources:
-        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        mem_mb=double_on_attempt(1024*2), # base memory: 2 GB
         runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """

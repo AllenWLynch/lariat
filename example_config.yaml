@@ -39,13 +39,13 @@ datasets:
 references:
   grch38.gencode.v22:
     gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_22/gencode.v22.annotation.gtf.gz 
-    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
+    fasta_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_22/GRCh38.primary_assembly.genome.fa.gz
     species: Homo sapiens
   grch38.gencode.v29:
     gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.basic.annotation.gtf.gz
-    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
+    fasta_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/GRCh38.primary_assembly.genome.fa.gz
     species: Homo sapiens
   grch38.gencode.v49:
-    gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.annotation.gtf.gz 
-    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
+    gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.annotation.gtf.gz
+    fasta_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz
     species: Homo sapiens

@@ -8,14 +8,20 @@ rule junctions_extract:
     params:
         str_spec=get_sr_strand_specificity
     conda: "../envs/regtools.yaml"
+    log: "logs/junctions_extract/{dataset_id}-{reference_id}.log"
+    benchmark: "benchmarks/junctions_extract/{dataset_id}-{reference_id}.txt"
     shadow: "shallow"
+    threads: 1
+    resources:
+        mem_mb=double_on_attempt(1024*5) # base memory: 5 GB
+        runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
         samtools index {input.bam}
         regtools junctions extract -s {params.str_spec} {input.bam} > {output}
         """
 
-# Step 3 in CZ pipeline -- regtools junctions annotate
+# Step 2 in CZ pipeline -- regtools junctions annotate
 rule junctions_annotate:
     input:
         junc_extr=rules.junctions_extract.output, # for series of rules, you can refer to the outputs of previous rules using rules.<rulename>.output! AL
@@ -25,16 +31,21 @@ rule junctions_annotate:
     output:
         DB_path_temp("intermediates/{dataset_id}-{reference_id}/junctions.annotate.bed")
     conda: "../envs/regtools.yaml" # added conda env - need to go up one path to access envs directory
+    log: "logs/junctions_annotate/{dataset_id}-{reference_id}.log"
+    benchmark: "benchmarks/junctions_annotate/{dataset_id}-{reference_id}.txt"
     shadow: "shallow" # the shadow directive makes it so that "side effect" files (like .bai, .fai, or anything else that is collateral output of a command)
                       # are written to a temp directory so they are cleaned up after the rule completes.
-    log: "logs/junctions_annotate/{dataset_id}-{reference_id}.log"
+    threads: 1
+    resources:
+        mem_mb=double_on_attempt(1024*5) # base memory: 5 GB
+        runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
         gzip -dc {input.ref_annot} > {input.ref_annot}.gff
         regtools junctions annotate {input.junc_extr} {input.ref_genome} {input.ref_annot}.gff > {output} 2> {log}
         """
 
-# Step 4 of CZ pipeline -- extend TSS and TES of every gene by 512 bp on both sides & group all transcripts by gene
+# Step 3 of CZ pipeline -- extend TSS and TES of every gene by 512 bp on both sides & group all transcripts by gene
 rule collapse_transcripts:
     input:
         ref_annot=reference_annotation,
@@ -42,8 +53,15 @@ rule collapse_transcripts:
     output:
        DB_path_temp("intermediates/{reference_id}/annotated.collapsed.bed")
     conda: "../envs/gffread.yaml"
+    log: "logs/collapse_transcripts/{dataset_id}-{reference_id}.log"
+    benchmark: "benchmarks/collapse_transcripts/{dataset_id}-{reference_id}.txt"
+    shadow: "shallow"
     params:
         scripts_dir=SCRIPTS_DIR
+    threads: 1
+    resources:
+        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
         gzip -dc {input.ref_annot} | 
@@ -52,7 +70,7 @@ rule collapse_transcripts:
             python {params.scripts_dir}/collapse_transcripts.py > {output}
         """
 
-# Step 5 of CZ pipeline -- intersect junction data w/ reference genome gene data
+# Step 4 of CZ pipeline -- intersect junction data w/ reference genome gene data
 rule bedtools_intersect:
     input:
         junc_annot=rules.junctions_annotate.output,
@@ -60,6 +78,13 @@ rule bedtools_intersect:
     output:
         DB_path_temp("intermediates/{dataset_id}-{reference_id}/junctions.intersect.bed")
     conda: "../envs/gffread.yaml" # has bedtools
+    log: "logs/bedtools_intersect/{dataset_id}-{reference_id}.log"
+    benchmark: "benchmarks/bedtools_intersect/{dataset_id}-{reference_id}.txt"
+    shadow: "shallow"
+    threads: 1
+    resources:
+        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
         bedtools intersect -a {input.junc_annot} -b {input.ref_annot_collapsed} -wa -wb -s -f 1.0 | 
@@ -72,7 +97,7 @@ def _get_gene_intersections(wildcards):
         reference_id=sample_ref_id(wildcards),
     )
 
-# Step 6 of CZ pipeline -- calculate junction start & end offsets based on gene start index, store output in tuple form
+# Step 5 of CZ pipeline -- calculate junction start & end offsets based on gene start index, store output in tuple form
 rule calculate_offsets_tuples:
     input:
         junc_inter=_get_gene_intersections,
@@ -82,6 +107,13 @@ rule calculate_offsets_tuples:
         scripts_dir=SCRIPTS_DIR,
         known=config.junction_min_count_known,
         unknown=config.junction_min_count_unknown,
+    log: "logs/calculate_offsets_tuples/{dataset_id}-{reference_id}.log"
+    benchmark: "benchmarks/calculate_offsets_tuples/{dataset_id}-{reference_id}.txt"
+    shadow: "shallow"
+    threads: 1
+    resources:
+        mem_mb=double_on_attempt(1024*2) # base memory: 2 GB
+        runtime=double_on_attempt(10) # base runtime: 10 min
     shell:
         """
         python {params.scripts_dir}/calculate_junc_annot_offsets.py \

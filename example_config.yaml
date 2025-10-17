@@ -24,9 +24,23 @@ datasets:
       bam_file: https://www.encodeproject.org/files/ENCFF894FXL/@@download/ENCFF894FXL.bam 
     reference: grch38.gencode.v49
     technology_name: HiSeq2000
+  ENCFF894ZVD:
+    is_long_read: false
+    is_single_cell: false
+    celltypes:
+      A549: 1.0
+    strand_specificity: forward
+    source_data:
+      bam_file: https://www.encodeproject.org/files/ENCFF894ZVD/@@download/ENCFF894ZVD.bam  
+    reference: grch38.gencode.v22
+    technology_name: HiSeq2500,HiSeq2000
 
 
 references:
+  grch38.gencode.v22:
+    gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_22/gencode.v22.annotation.gtf.gz 
+    fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
+    species: Homo sapiens
   grch38.gencode.v29:
     gene_annotation_file: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.basic.annotation.gtf.gz
     fasta_file: /Users/parklab/ParkLab/Allen/Junctions/data/hg38.fa
